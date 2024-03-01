@@ -59,7 +59,6 @@ export default function RevenueChart({ data }: { data: YearlyRevenue[] }) {
               <div className="mx-52" />
               <YAxis
                 tickLine={false}
-                // axisLine={false}
                 fontSize={12}
                 stroke="#888888"
                 className=" mx-52"
