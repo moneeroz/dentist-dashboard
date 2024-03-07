@@ -1,7 +1,7 @@
 'use client';
 
 import { CalendarIcon } from '@heroicons/react/24/outline';
-import { lusitana } from '@/app/ui/fonts';
+import { marhey } from '@/app/ui/fonts';
 import { YearlyRevenue } from '@/app/lib/definitions';
 
 import {
@@ -28,7 +28,7 @@ export default function RevenueChart({ data }: { data: YearlyRevenue[] }) {
 
   return (
     <div className="w-full md:col-span-4">
-      <h2 className={`${lusitana.className} mb-4 text-xl md:text-2xl`}>
+      <h2 className={`${marhey.className} mb-4 text-xl md:text-2xl`}>
         آخر الإيرادات
       </h2>
 
