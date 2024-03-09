@@ -1,4 +1,5 @@
 import type { NextAuthConfig } from 'next-auth';
+import { getToken } from 'next-auth/jwt';
 
 export const authConfig = {
   pages: {
@@ -15,6 +16,16 @@ export const authConfig = {
         return Response.redirect(new URL('/dashboard', nextUrl));
       }
       return true;
+    },
+    jwt({ token, user }) {
+      if (user) {
+        token.role = user.role;
+      }
+      return token;
+    },
+    session({ session, token }) {
+      session.user.role = token.role as 'admin' | 'user';
+      return session;
     },
   },
   providers: [], // Add providers with an empty array for now
