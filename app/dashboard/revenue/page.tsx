@@ -30,7 +30,7 @@ export default async function Page({
   const doctors = await fetchDoctors();
 
   const session = await auth();
-  const role = session?.user.role;
+  const role = session?.user?.role;
 
   if (role === 'user') {
     redirect('/dashboard/revenue/access-denied');
