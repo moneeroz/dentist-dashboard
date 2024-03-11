@@ -19,7 +19,9 @@ const FormSchema = z.object({
     invalid_type_error: '.Please select an invoice status',
   }),
   date: z.string(),
-  booking_date: z.string({ required_error: '.Please select a booking date' }),
+  appointment_date: z.string({
+    required_error: '.Please select a appointment date',
+  }),
   reason: z.string({ required_error: '.Please enter a reason for the visit' }),
   name: z.string().min(3, { message: '.Please enter the patient name' }),
   phone: z
@@ -33,7 +35,7 @@ export type State = {
     doctorId?: string[];
     amount?: string[];
     status?: string[];
-    booking_date?: string[];
+    appointment_date?: string[];
     reason?: string[];
     name?: string[];
     phone?: string[];
@@ -44,7 +46,7 @@ export type State = {
 const CreateInvoice = FormSchema.omit({
   id: true,
   date: true,
-  booking_date: true,
+  appointment_date: true,
   name: true,
   phone: true,
 });
@@ -93,7 +95,7 @@ export const createInvoice = async (prevState: State, formData: FormData) => {
 const UpdateInvoice = FormSchema.omit({
   id: true,
   date: true,
-  booking_date: true,
+  appointment_date: true,
   name: true,
   phone: true,
 });
@@ -144,7 +146,7 @@ export const deleteInvoice = async (id: string) => {
     return { message: '.Database Error: Failed to Delete Invoice' };
   }
 };
-const CreateBooking = FormSchema.omit({
+const CreateAppointment = FormSchema.omit({
   id: true,
   date: true,
   amount: true,
@@ -153,12 +155,15 @@ const CreateBooking = FormSchema.omit({
   phone: true,
 });
 
-export const createBooking = async (prevState: State, formData: FormData) => {
+export const createAppointment = async (
+  prevState: State,
+  formData: FormData,
+) => {
   // Validate form fields using Zod
-  const validatedFields = CreateBooking.safeParse({
+  const validatedFields = CreateAppointment.safeParse({
     patientId: formData.get('patientId'),
     doctorId: formData.get('doctorId'),
-    booking_date: formData.get('booking_date'),
+    appointment_date: formData.get('appointment_date'),
     reason: formData.get('reason'),
   });
 
@@ -166,36 +171,37 @@ export const createBooking = async (prevState: State, formData: FormData) => {
   if (!validatedFields.success) {
     return {
       errors: validatedFields.error.flatten().fieldErrors,
-      message: '.Missing Fields. Failed to Create Booking',
+      message: '.Missing Fields. Failed to Create Appointment',
     };
   }
 
   // Prepare data for insertion into the database
-  const { patientId, doctorId, booking_date, reason } = validatedFields.data;
+  const { patientId, doctorId, appointment_date, reason } =
+    validatedFields.data;
 
-  const bookingDate = formatISO(new Date(booking_date));
+  const appointmentDate = formatISO(new Date(appointment_date));
 
   const date = formatISO(new Date());
 
   // Insert data into the database
   try {
     await sql`
-      INSERT INTO bookings (patient_id, doctor_id, booking_date, reason, date)
-      VALUES (${patientId}, ${doctorId}, ${bookingDate}, ${reason}, ${date})
+      INSERT INTO appointments (patient_id, doctor_id, appointment_date, reason, date)
+      VALUES (${patientId}, ${doctorId}, ${appointmentDate}, ${reason}, ${date})
     `;
   } catch (error) {
     // If a database error occurs, return a more specific error.
     return {
-      message: '.Database Error: Failed to Create Booking',
+      message: '.Database Error: Failed to Create Appointment',
     };
   }
 
-  // Revalidate the cache for the bookings page and redirect the user
-  revalidatePath('/dashboard/bookings');
-  redirect('/dashboard/bookings');
+  // Revalidate the cache for the appointments page and redirect the user
+  revalidatePath('/dashboard/appointments');
+  redirect('/dashboard/appointments');
 };
 
-const UpdateBooking = FormSchema.omit({
+const UpdateAppointment = FormSchema.omit({
   id: true,
   date: true,
   amount: true,
@@ -204,50 +210,51 @@ const UpdateBooking = FormSchema.omit({
   phone: true,
 });
 
-export const updateBooking = async (
+export const updateAppointment = async (
   id: string,
   prevState: State,
   formData: FormData,
 ) => {
-  const validatedFields = UpdateBooking.safeParse({
+  const validatedFields = UpdateAppointment.safeParse({
     patientId: formData.get('patientId'),
     doctorId: formData.get('doctorId'),
-    booking_date: formData.get('booking_date'),
+    appointment_date: formData.get('appointment_date'),
     reason: formData.get('reason'),
   });
 
   if (!validatedFields.success) {
     return {
       errors: validatedFields.error.flatten().fieldErrors,
-      message: '.Missing Fields. Failed to Update Booking',
+      message: '.Missing Fields. Failed to Update Appointment',
     };
   }
 
-  const { patientId, doctorId, booking_date, reason } = validatedFields.data;
+  const { patientId, doctorId, appointment_date, reason } =
+    validatedFields.data;
 
-  const bookingDate = formatISO(new Date(booking_date));
+  const appointmentDate = formatISO(new Date(appointment_date));
 
   try {
     await sql`
-      UPDATE Bookings
-      SET patient_id = ${patientId}, doctor_id = ${doctorId}, booking_date = ${bookingDate}, reason = ${reason}
+      UPDATE Appointments
+      SET patient_id = ${patientId}, doctor_id = ${doctorId}, appointment_date = ${appointmentDate}, reason = ${reason}
       WHERE id = ${id}
     `;
   } catch (error) {
-    return { message: '.Database Error: Failed to Update Booking' };
+    return { message: '.Database Error: Failed to Update Appointment' };
   }
 
-  revalidatePath('/dashboard/bookings');
-  redirect('/dashboard/bookings');
+  revalidatePath('/dashboard/appointments');
+  redirect('/dashboard/appointments');
 };
 
-export const deleteBooking = async (id: string) => {
+export const deleteAppointment = async (id: string) => {
   try {
-    await sql`DELETE FROM Bookings WHERE id = ${id}`;
-    revalidatePath('/dashboard/bookings');
-    return { message: 'Deleted Booking.' };
+    await sql`DELETE FROM Appointments WHERE id = ${id}`;
+    revalidatePath('/dashboard/appointments');
+    return { message: 'Deleted Appointment.' };
   } catch (error) {
-    return { message: '.Database Error: Failed to Delete Booking' };
+    return { message: '.Database Error: Failed to Delete Appointment' };
   }
 };
 
@@ -257,7 +264,7 @@ const CreatePatient = FormSchema.omit({
   doctorId: true,
   amount: true,
   status: true,
-  booking_date: true,
+  appointment_date: true,
   reason: true,
   date: true,
 });
@@ -298,9 +305,9 @@ export const createPatient = async (prevState: State, formData: FormData) => {
   // Revalidate the cache for the create page and redirect the user
   const type = formData.get('type');
 
-  if (type === 'bookings') {
-    revalidatePath(`/dashboard/bookings/create`);
-    redirect(`/dashboard/bookings/create`);
+  if (type === 'appointments') {
+    revalidatePath(`/dashboard/appointments/create`);
+    redirect(`/dashboard/appointments/create`);
   } else {
     revalidatePath(`/dashboard/invoices/create`);
     redirect(`/dashboard/invoices/create`);
