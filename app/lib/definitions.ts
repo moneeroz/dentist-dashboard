@@ -1,15 +1,16 @@
 // This file contains type definitions for your data.
 // It describes the shape of the data, and what data type each property should accept.
-// For simplicity of teaching, we're manually defining these types.
+// For simplicity, we're manually defining these types.
 // However, these types are generated automatically if you're using an ORM such as Prisma.
 export type User = {
   id: string;
   name: string;
   email: string;
   password: string;
+  role: 'admin' | 'user';
 };
 
-export type Customer = {
+export type Patient = {
   id: string;
   name: string;
   phone: string;
@@ -22,7 +23,7 @@ export type Doctor = {
 
 export type Invoice = {
   id: string;
-  customer_id: string;
+  patient_id: string;
   doctor_id: string;
   amount: number;
   date: string;
@@ -31,9 +32,10 @@ export type Invoice = {
   status: 'pending' | 'paid';
 };
 
-export type Revenue = {
-  month: string;
-  revenue: number;
+export type YearlyRevenue = {
+  month: number;
+  paid: number;
+  pending: number;
 };
 
 export type LatestInvoice = {
@@ -48,20 +50,41 @@ export type LatestInvoice = {
 export type LatestInvoiceRaw = Omit<LatestInvoice, 'amount'> & {
   amount: number;
 };
+export type LatestAppointment = {
+  id: string;
+  name: string;
+  doctor: string;
+  phone: string;
+  reason: string;
+  appointment_date: string;
+};
+
+export type AppointmentsTable = {
+  id: string;
+  patient_id: string;
+  doctor_id: string;
+  name: string;
+  doctor: string;
+  phone: string;
+  reason: string;
+  appointment_date: string;
+  date: string;
+};
 
 export type InvoicesTable = {
   id: string;
-  customer_id: string;
+  patient_id: string;
   doctor_id: string;
   name: string;
   doctor: string;
   phone: string;
   date: string;
+  reason: string;
   amount: number;
   status: 'pending' | 'paid';
 };
 
-export type CustomersTableType = {
+export type PatientsTableType = {
   id: string;
   name: string;
   phone: string;
@@ -70,7 +93,7 @@ export type CustomersTableType = {
   total_paid: number;
 };
 
-export type FormattedCustomersTable = {
+export type FormattedPatientsTable = {
   id: string;
   name: string;
   phone: string;
@@ -79,7 +102,26 @@ export type FormattedCustomersTable = {
   total_paid: string;
 };
 
-export type CustomerField = {
+export type patientTable = {
+  id: string;
+  name: string;
+  doctor: string;
+  reason: string;
+  status: string;
+  amount: number;
+  date: string;
+};
+export type formattedPatientTable = {
+  id: string;
+  name: string;
+  doctor: string;
+  reason: string;
+  status: string;
+  amount: string;
+  date: string;
+};
+
+export type PatientField = {
   id: string;
   name: string;
 };
@@ -89,10 +131,19 @@ export type DoctorField = {
   name: string;
 };
 
+export type AppointmentForm = {
+  id: string;
+  patient_id: string;
+  doctor_id: string;
+  appointment_date: string;
+  reason: string;
+};
+
 export type InvoiceForm = {
   id: string;
-  customer_id: string;
+  patient_id: string;
   doctor_id: string;
   amount: number;
+  reason: string;
   status: 'pending' | 'paid';
 };
