@@ -16,8 +16,6 @@ export default async function Page({
 }) {
   const patientInvoices = await fetchPatientInvoices(params.id);
 
-  console.log(patientInvoices);
-
   return (
     <main>
       <PatientTable patientInvoices={patientInvoices} />

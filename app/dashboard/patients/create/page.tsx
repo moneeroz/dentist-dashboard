@@ -8,19 +8,18 @@ export default function Page({
   searchParams?: { type?: string };
 }) {
   const type = searchParams?.type;
-  console.log(type);
 
   const breadcrumbs =
-    type === 'bookings'
+    type === 'appointments'
       ? [
-          { label: 'الحجوزات', href: '/dashboard/bookings' },
+          { label: 'الحجوزات', href: '/dashboard/appointments' },
           {
             label: 'ادخل الحجز',
-            href: '/dashboard/bookings/create',
+            href: '/dashboard/appointments/create',
           },
           {
             label: 'ادخل المريض ',
-            href: '/dashboard/patients/create?type=bookings',
+            href: '/dashboard/patients/create?type=appointments',
             active: true,
           },
         ]
