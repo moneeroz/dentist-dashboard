@@ -7,9 +7,9 @@ import {
   LatestInvoiceRaw,
   User,
   DoctorField,
-  BookingsTable,
-  BookingForm,
-  LatestBooking,
+  AppointmentsTable,
+  AppointmentForm,
+  LatestAppointment,
   patientTable,
   YearlyRevenue,
 } from './definitions';
@@ -17,24 +17,24 @@ import { formatCurrency } from './utils';
 import { unstable_noStore as noStore } from 'next/cache';
 import { formatISO } from 'date-fns';
 
-export async function fetchLatestBookings() {
+export async function fetchLatestAppointments() {
   noStore();
 
   try {
-    const data = await sql<LatestBooking>`
-      SELECT bookings.reason, patients.name, patients.phone, doctors.name as doctor, bookings.id, bookings.booking_date
-      FROM bookings
-      JOIN patients ON bookings.patient_id = patients.id
-      JOIN doctors ON bookings.doctor_id = doctors.id
-      ORDER BY bookings.booking_date ASC
+    const data = await sql<LatestAppointment>`
+      SELECT appointments.reason, patients.name, patients.phone, doctors.name as doctor, appointments.id, appointments.appointment_date
+      FROM appointments
+      JOIN patients ON appointments.patient_id = patients.id
+      JOIN doctors ON appointments.doctor_id = doctors.id
+      ORDER BY appointments.appointment_date ASC
       LIMIT 5`;
 
-    const latestBookings = data.rows;
+    const latestAppointments = data.rows;
 
-    return latestBookings;
+    return latestAppointments;
   } catch (error) {
     console.error('Database Error:', error);
-    throw new Error('Failed to fetch the latest bookings.');
+    throw new Error('Failed to fetch the latest appointments.');
   }
 }
 export async function fetchLatestInvoices() {
@@ -74,27 +74,27 @@ export async function fetchCardData() {
     // You can probably combine these into a single SQL query
     // However, we are intentionally splitting them to demonstrate
     // how to initialize multiple queries in parallel with JS.
-    const bookingsTodayPromise = sql`SELECT COUNT(*) FROM bookings WHERE DATE(Booking_date) = ${today}`;
-    const bookingsTomorrowPromise = sql`SELECT COUNT(*) FROM bookings WHERE DATE(Booking_date) = ${tomorrow}`;
+    const appointmentsTodayPromise = sql`SELECT COUNT(*) FROM appointments WHERE DATE(Appointment_date) = ${today}`;
+    const appointmentsTomorrowPromise = sql`SELECT COUNT(*) FROM appointments WHERE DATE(Appointment_date) = ${tomorrow}`;
     const invoiceStatusPromise = sql`SELECT
          SUM(CASE WHEN status = 'paid' THEN amount ELSE 0 END) AS "paid",
          SUM(CASE WHEN status = 'pending' THEN amount ELSE 0 END) AS "pending"
          FROM invoices WHERE DATE(date) = ${today}`;
 
     const data = await Promise.all([
-      bookingsTodayPromise,
-      bookingsTomorrowPromise,
+      appointmentsTodayPromise,
+      appointmentsTomorrowPromise,
       invoiceStatusPromise,
     ]);
 
-    const numberOfBookingsToday = Number(data[0].rows[0].count ?? '0');
-    const numberOfBookingsTomorrow = Number(data[1].rows[0].count ?? '0');
+    const numberOfAppointmentsToday = Number(data[0].rows[0].count ?? '0');
+    const numberOfAppointmentsTomorrow = Number(data[1].rows[0].count ?? '0');
     const totalPaidInvoices = formatCurrency(data[2].rows[0].paid ?? '0');
     const totalPendingInvoices = formatCurrency(data[2].rows[0].pending ?? '0');
 
     return {
-      numberOfBookingsToday,
-      numberOfBookingsTomorrow,
+      numberOfAppointmentsToday,
+      numberOfAppointmentsTomorrow,
       totalPaidInvoices,
       totalPendingInvoices,
     };
@@ -105,7 +105,7 @@ export async function fetchCardData() {
 }
 
 const ITEMS_PER_PAGE = 6;
-export async function fetchFilteredBookings(
+export async function fetchFilteredAppointments(
   query: string,
   currentPage: number,
 ) {
@@ -114,81 +114,81 @@ export async function fetchFilteredBookings(
   const offset = (currentPage - 1) * ITEMS_PER_PAGE;
 
   try {
-    const bookings = await sql<BookingsTable>`
+    const appointments = await sql<AppointmentsTable>`
       SELECT
-        bookings.id,
-        bookings.reason,
-        bookings.date,
-        bookings.booking_date,
+        appointments.id,
+        appointments.reason,
+        appointments.date,
+        appointments.appointment_date,
         patients.name AS name,
         patients.phone,
         doctors.name AS doctor
-      FROM bookings
-      JOIN patients ON bookings.patient_id = patients.id
-      JOIN doctors ON bookings.doctor_id = doctors.id
+      FROM appointments
+      JOIN patients ON appointments.patient_id = patients.id
+      JOIN doctors ON appointments.doctor_id = doctors.id
       WHERE
         patients.name ILIKE ${`%${query}%`} OR
         patients.phone ILIKE ${`%${query}%`} OR
         doctors.name ILIKE ${`%${query}%`} OR
-        bookings.booking_date::text ILIKE ${`%${query}%`} OR
-        bookings.date::text ILIKE ${`%${query}%`} OR
-        bookings.reason ILIKE ${`%${query}%`}
-      ORDER BY bookings.booking_date ASC
+        appointments.appointment_date::text ILIKE ${`%${query}%`} OR
+        appointments.date::text ILIKE ${`%${query}%`} OR
+        appointments.reason ILIKE ${`%${query}%`}
+      ORDER BY appointments.appointment_date ASC
       LIMIT ${ITEMS_PER_PAGE} OFFSET ${offset}
     `;
 
-    return bookings.rows;
+    return appointments.rows;
   } catch (error) {
     console.error('Database Error:', error);
-    throw new Error('Failed to fetch bookings.');
+    throw new Error('Failed to fetch appointments.');
   }
 }
 
-export async function fetchBookingsPages(query: string) {
+export async function fetchAppointmentsPages(query: string) {
   noStore();
 
   try {
     const count = await sql`SELECT COUNT(*)
-    FROM bookings
-    JOIN patients ON bookings.patient_id = patients.id
-    JOIN doctors ON bookings.doctor_id = doctors.id
+    FROM appointments
+    JOIN patients ON appointments.patient_id = patients.id
+    JOIN doctors ON appointments.doctor_id = doctors.id
     WHERE
       patients.name ILIKE ${`%${query}%`} OR
       patients.phone ILIKE ${`%${query}%`} OR
       doctors.name ILIKE ${`%${query}%`} OR
-      bookings.booking_date::text ILIKE ${`%${query}%`} OR
-      bookings.date::text ILIKE ${`%${query}%`} OR
-      bookings.reason ILIKE ${`%${query}%`}
+      appointments.appointment_date::text ILIKE ${`%${query}%`} OR
+      appointments.date::text ILIKE ${`%${query}%`} OR
+      appointments.reason ILIKE ${`%${query}%`}
   `;
 
     const totalPages = Math.ceil(Number(count.rows[0].count) / ITEMS_PER_PAGE);
     return totalPages;
   } catch (error) {
     console.error('Database Error:', error);
-    throw new Error('Failed to fetch total number of bookings.');
+    throw new Error('Failed to fetch total number of appointments.');
   }
 }
 
-export async function fetchBookingById(id: string) {
+export async function fetchAppointmentById(id: string) {
   noStore();
 
   try {
-    const data = await sql<BookingForm>`
+    const data = await sql<AppointmentForm>`
       SELECT
-        bookings.id,
-        bookings.patient_id,
-        bookings.booking_date,
-        bookings.reason
-      FROM bookings
-      WHERE bookings.id = ${id};
+        appointments.id,
+        appointments.patient_id,
+        appointments.appointment_date,
+        appointments.reason
+      FROM appointments
+      WHERE appointments.id = ${id};
     `;
 
-    const bookings = data.rows;
+    const appointments = data.rows;
 
-    return bookings[0];
+    return appointments[0];
   } catch (error) {
     console.error('Database Error:', error);
-    throw new Error('Failed to fetch booking.');
+    throw new Error('Failed to fetch appointment.');
   }
 }
 
@@ -307,8 +307,13 @@ export async function fetchPatients() {
   }
 }
 
-export async function fetchFilteredPatients(query: string) {
+export async function fetchFilteredPatients(
+  query: string,
+  currentPage: number,
+) {
   noStore();
+  const ITEMS_PER_PAGE = 8;
+  const offset = (currentPage - 1) * ITEMS_PER_PAGE;
 
   try {
     const data = await sql<PatientsTableType>`
@@ -326,6 +331,7 @@ export async function fetchFilteredPatients(query: string) {
         patients.phone ILIKE ${`%${query}%`}
 		GROUP BY patients.id, patients.name, patients.phone
 		ORDER BY patients.name ASC
+    LIMIT ${ITEMS_PER_PAGE} OFFSET ${offset}
 	  `;
 
     const patients = data.rows.map((patient) => ({
@@ -338,6 +344,26 @@ export async function fetchFilteredPatients(query: string) {
   } catch (err) {
     console.error('Database Error:', err);
     throw new Error('Failed to fetch patient table.');
+  }
+}
+export async function fetchPatientsPages(query: string) {
+  noStore();
+
+  const ITEMS_PER_PAGE = 8;
+  try {
+    const count = await sql`SELECT COUNT(*)
+    FROM patients
+    WHERE
+      patients.name ILIKE ${`%${query}%`} OR
+      patients.phone ILIKE ${`%${query}%`}
+     
+  `;
+
+    const totalPages = Math.ceil(Number(count.rows[0].count) / ITEMS_PER_PAGE);
+    return totalPages;
+  } catch (error) {
+    console.error('Database Error:', error);
+    throw new Error('Failed to fetch total number of invoices.');
   }
 }
 
