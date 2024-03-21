@@ -12,7 +12,7 @@ import {
 import { Button } from '@/app/ui/button';
 import { createInvoice } from '@/app/lib/actions';
 import { useFormState } from 'react-dom';
-import { CreatePatient } from '../appointments/buttons';
+import { CreatePatient } from '../patients/buttons';
 import Select from 'react-select';
 
 type options = {

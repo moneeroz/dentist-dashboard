@@ -307,10 +307,10 @@ export function AppointmentsTableSkeleton() {
                   المريض
                 </th>
                 <th scope="col" className="px-3 py-5 font-medium">
-                  رقم التلفون{' '}
+                  رقم التلفون
                 </th>
                 <th scope="col" className="px-3 py-5 font-medium">
-                  تاريخ الحجز{' '}
+                  تاريخ الحجز
                 </th>
                 <th scope="col" className="px-3 py-5 font-medium">
                   سبب الزيارة
@@ -344,16 +344,28 @@ export function AppointmentsTableSkeleton() {
 export function PatientsMobileSkeleton() {
   return (
     <div className="mb-2 w-full rounded-md bg-white p-4">
-      <div className="flex flex-col content-center justify-between gap-3 border-b border-gray-100 pb-4">
-        <div className="h-6 w-48 rounded bg-gray-100"></div>
-        <div className="h-6 w-24 rounded bg-gray-100"></div>
+      <div className="flex w-full items-center justify-between border-b border-gray-100 pb-4">
+        <div className="flex flex-col content-center justify-between gap-3">
+          <div className="h-6 w-48 rounded bg-gray-100"></div>
+          <div className="h-6 w-24 rounded bg-gray-100"></div>
+        </div>
+
+        <div className="flex justify-end gap-2">
+          <div className="h-10 w-10 rounded bg-gray-100"></div>
+          <div className="h-10 w-10 rounded bg-gray-100"></div>
+        </div>
       </div>
+
       <div className="border-b border-gray-100 py-4">
         <div className="h-6 w-20 rounded bg-gray-100"></div>
       </div>
-      <div className="flex w-full items-center justify-start gap-32 pt-4">
-        <div className="h-10 w-20 rounded bg-gray-100"></div>
-        <div className="h-10 w-20 rounded bg-gray-100"></div>
+      <div className="flex w-full justify-start pt-4">
+        <div className="w-1/2">
+          <div className="h-10 w-20 rounded bg-gray-100"></div>
+        </div>
+        <div className="w-1/2">
+          <div className="h-10 w-20 rounded bg-gray-100"></div>
+        </div>
       </div>
     </div>
   );
@@ -383,6 +395,13 @@ export function PatientTableRowSkeleton() {
       {/* Paid amount */}
       <td className="whitespace-nowrap px-3 py-3">
         <div className="h-6 w-16 rounded bg-gray-100"></div>
+      </td>
+      {/* Actions */}
+      <td className="whitespace-nowrap py-3 pl-6 pr-3">
+        <div className="flex justify-end gap-3">
+          <div className="h-[38px] w-[38px] rounded bg-gray-100"></div>
+          <div className="h-[38px] w-[38px] rounded bg-gray-100"></div>
+        </div>
       </td>
     </tr>
   );
