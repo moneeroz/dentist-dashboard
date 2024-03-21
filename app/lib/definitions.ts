@@ -139,6 +139,12 @@ export type AppointmentForm = {
   reason: string;
 };
 
+export type PatientForm = {
+  id: string;
+  name: string;
+  phone: string;
+};
+
 export type InvoiceForm = {
   id: string;
   patient_id: string;

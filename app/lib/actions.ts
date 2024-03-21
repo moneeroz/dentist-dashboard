@@ -24,9 +24,7 @@ const FormSchema = z.object({
   }),
   reason: z.string({ required_error: '.Please enter a reason for the visit' }),
   name: z.string().min(3, { message: '.Please enter the patient name' }),
-  phone: z
-    .string()
-    .min(1, { message: '.Please enter the patient phone number' }),
+  phone: z.string().optional(),
 });
 
 export type State = {
@@ -146,6 +144,7 @@ export const deleteInvoice = async (id: string) => {
     return { message: '.Database Error: Failed to Delete Invoice' };
   }
 };
+
 const CreateAppointment = FormSchema.omit({
   id: true,
   date: true,
@@ -290,11 +289,83 @@ export const createPatient = async (prevState: State, formData: FormData) => {
   const created_at = formatISO(new Date());
 
   // Insert data into the database
+  if (!phone) {
+    try {
+      await sql`
+        INSERT INTO Patients (name, created_at)
+        VALUES (${name}, ${created_at})
+      `;
+    } catch (error) {
+      // If a database error occurs, return a more specific error.
+      return {
+        message: '.Database Error: Failed to Create Patient',
+      };
+    }
+  } else {
+    try {
+      await sql`
+        INSERT INTO Patients (name, phone, created_at)
+        VALUES (${name}, ${phone}, ${created_at})
+      `;
+    } catch (error) {
+      // If a database error occurs, return a more specific error.
+      return {
+        message: '.Database Error: Failed to Create Patient',
+      };
+    }
+  }
+
+  // Revalidate the cache for the create page and redirect the user
+  const type = formData.get('type');
+
+  if (!type) {
+    revalidatePath('/dashboard/patients');
+    redirect('/dashboard/patients');
+  }
+  revalidatePath(`/dashboard/${type}/create`);
+  redirect(`/dashboard/${type}/create`);
+};
+const UpdatePatient = FormSchema.omit({
+  id: true,
+  patientId: true,
+  doctorId: true,
+  amount: true,
+  status: true,
+  appointment_date: true,
+  reason: true,
+  date: true,
+});
+
+export const updatePatient = async (
+  id: string,
+  prevState: State,
+  formData: FormData,
+) => {
+  // Validate form fields using Zod
+  const validatedFields = UpdatePatient.safeParse({
+    name: formData.get('name'),
+    phone: formData.get('phone'),
+  });
+
+  // If form validation fails, return errors early. Otherwise, continue.
+  if (!validatedFields.success) {
+    return {
+      errors: validatedFields.error.flatten().fieldErrors,
+      message: '.Missing Fields. Failed to Create Patient',
+    };
+  }
+
+  // Prepare data for insertion into the database
+  const { name, phone } = validatedFields.data;
+
+  // update data in the database
+
   try {
     await sql`
-      INSERT INTO Patients (name, phone, created_at)
-      VALUES (${name}, ${phone}, ${created_at})
-    `;
+      UPDATE Patients
+      SET name = ${name}, phone = ${phone}
+      WHERE id = ${id}
+      `;
   } catch (error) {
     // If a database error occurs, return a more specific error.
     return {
@@ -303,14 +374,17 @@ export const createPatient = async (prevState: State, formData: FormData) => {
   }
 
   // Revalidate the cache for the create page and redirect the user
-  const type = formData.get('type');
+  revalidatePath(`/dashboard/patients`);
+  redirect(`/dashboard/patients`);
+};
 
-  if (type === 'appointments') {
-    revalidatePath(`/dashboard/appointments/create`);
-    redirect(`/dashboard/appointments/create`);
-  } else {
-    revalidatePath(`/dashboard/invoices/create`);
-    redirect(`/dashboard/invoices/create`);
+export const deletePatient = async (id: string) => {
+  try {
+    await sql`DELETE FROM Patients WHERE id = ${id}`;
+    revalidatePath('/dashboard/patients');
+    return { message: 'Deleted Patient.' };
+  } catch (error) {
+    return { message: '.Database Error: Failed to Delete Patient' };
   }
 };
 

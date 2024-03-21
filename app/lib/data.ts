@@ -12,6 +12,7 @@ import {
   LatestAppointment,
   patientTable,
   YearlyRevenue,
+  PatientForm,
 } from './definitions';
 import { formatCurrency } from './utils';
 import { unstable_noStore as noStore } from 'next/cache';
@@ -398,6 +399,28 @@ export async function fetchPatientInvoices(id: string) {
   } catch (error) {
     console.error('Database Error:', error);
     throw new Error('Failed to fetch patient invoices.');
+  }
+}
+
+export async function fetchPatientById(id: string) {
+  noStore();
+
+  try {
+    const data = await sql<PatientForm>`
+      SELECT
+        patients.id,
+        patients.name,
+        patients.phone
+      FROM patients
+      WHERE patients.id = ${id};
+    `;
+
+    const patients = data.rows;
+
+    return patients[0];
+  } catch (error) {
+    console.error('Database Error:', error);
+    throw new Error('Failed to fetch appointment.');
   }
 }
 
