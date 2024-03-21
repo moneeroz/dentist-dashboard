@@ -6,6 +6,7 @@ import { PatientsTableSkeleton } from '@/app/ui/skeletons';
 import { Suspense } from 'react';
 import { fetchPatientsPages } from '@/app/lib/data';
 import { Metadata } from 'next';
+import { CreatePatient } from '@/app/ui/patients/buttons';
 
 export const metadata: Metadata = {
   title: 'Patients',
@@ -28,6 +29,7 @@ export default async function Page({
       </div>
       <div className="mt-4 flex items-center justify-between gap-2 md:mt-8">
         <Search placeholder="ابحث عن مريض..." />
+        <CreatePatient />
       </div>
       <Suspense key={query + currentPage} fallback={<PatientsTableSkeleton />}>
         <Table query={query} currentPage={currentPage} />
